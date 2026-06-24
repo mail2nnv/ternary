@@ -3,6 +3,14 @@
 
 The package `trn` provides ternary operators for Go.
 
+## Installation
+
+Install with the go get command:
+
+```
+go get github.com/mail2nnv/ternary
+```
+
 ## Examplies
 
 ### Simplest ternary
