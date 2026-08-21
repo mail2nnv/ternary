@@ -28,7 +28,7 @@ package trn
 //		Then("one element slice").
 //		Else(fmt.Sprintf("%d-element slice", len(s)))
 func If[T any](cond bool) Then[T] {
-	return then[T](cond)
+	return then1[T](cond)
 }
 
 // The [Then] branch provide methods [Then.Then] and [Then.ThenF]
@@ -62,20 +62,20 @@ type Else[T any] interface {
 }
 
 // Implements [Then] branch
-type then[T any] bool
+type then1[T any] bool
 
 // [Then.Then]
-func (t then[T]) Then(v T) Else[T] {
+func (t then1[T]) Then(v T) Else[T] {
 	if t {
-		return ret[T]{v}
+		return ret1[T]{v}
 	}
 	return else1[T]{}
 }
 
 // [Then.ThenF]
-func (t then[T]) ThenF(f func() T) Else[T] {
+func (t then1[T]) ThenF(f func() T) Else[T] {
 	if t {
-		return ret[T]{f()}
+		return ret1[T]{f()}
 	}
 	return else1[T]{}
 }
@@ -95,12 +95,12 @@ func (else1[T]) ElseF(f func() T) T {
 
 // [Else.ElseIf]
 func (else1[T]) ElseIf(cond bool) Then[T] {
-	return then[T](cond)
+	return then1[T](cond)
 }
 
 // [Else.ElseIfF]
 func (else1[T]) ElseIfF(f func() bool) Then[T] {
-	return then[T](f())
+	return then1[T](f())
 }
 
 // [Else.ElsePanic]
@@ -109,41 +109,41 @@ func (else1[T]) ElsePanic(v any) T {
 }
 
 // Implements both branches ([Then] and [Else]) return for succussfully completed evaluation.
-type ret[T any] struct {
+type ret1[T any] struct {
 	v T
 }
 
 // [Else.Else]
-func (r ret[T]) Else(T) T {
+func (r ret1[T]) Else(T) T {
 	return r.v
 }
 
 // [Else.ElseF]
-func (r ret[T]) ElseF(func() T) T {
+func (r ret1[T]) ElseF(func() T) T {
 	return r.v
 }
 
 // [Else.ElseIf]
-func (r ret[T]) ElseIf(bool) Then[T] {
+func (r ret1[T]) ElseIf(bool) Then[T] {
 	return r
 }
 
 // [Else.ElseIfF]
-func (r ret[T]) ElseIfF(func() bool) Then[T] {
+func (r ret1[T]) ElseIfF(func() bool) Then[T] {
 	return r
 }
 
 // [Else.ElsePanic]
-func (r ret[T]) ElsePanic(any) T {
+func (r ret1[T]) ElsePanic(any) T {
 	return r.v
 }
 
 // [Then.Then]
-func (r ret[T]) Then(T) Else[T] {
+func (r ret1[T]) Then(T) Else[T] {
 	return r
 }
 
 // [Then.ThenF]
-func (r ret[T]) ThenF(func() T) Else[T] {
+func (r ret1[T]) ThenF(func() T) Else[T] {
 	return r
 }
