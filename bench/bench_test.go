@@ -49,7 +49,7 @@ func Benchmark_If(b *testing.B) {
 		b.ResetTimer()
 		for b.Loop() {
 			for i := range cases {
-				got := trn.If[int](cases[i].arg%2 == 0).
+				got := trn.If(cases[i].arg%2 == 0).
 					Then(cases[i].arg).
 					Else(-cases[i].arg)
 				if got != cases[i].want {
@@ -63,7 +63,7 @@ func Benchmark_If(b *testing.B) {
 		b.ResetTimer()
 		for b.Loop() {
 			for i := range cases {
-				got := trn.If[int](cases[i].arg%2 == 0).
+				got := trn.If(cases[i].arg%2 == 0).
 					ThenF(func() int { return cases[i].arg }).
 					Else(-cases[i].arg)
 				if got != cases[i].want {
@@ -77,7 +77,7 @@ func Benchmark_If(b *testing.B) {
 		b.ResetTimer()
 		for b.Loop() {
 			for i := range cases {
-				got := trn.If[int](cases[i].arg%2 == 0).
+				got := trn.If(cases[i].arg%2 == 0).
 					ThenF(func() int { return cases[i].arg }).
 					ElseF(func() int { return -cases[i].arg })
 				if got != cases[i].want {

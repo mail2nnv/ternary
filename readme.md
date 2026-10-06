@@ -29,12 +29,12 @@ import (
 func ExampleIf() {
 	i := 1
 	fmt.Println(
-		trn.If[string](i == 1).
+		trn.If(i == 1).
 			Then("one").
 			Else("not one"))
 	i++
 	fmt.Println(
-		trn.If[string](i == 1).
+		trn.If(i == 1).
 			Then("one").
 			Else("not one"))
 	// Output:
@@ -57,7 +57,7 @@ import (
 func ExampleIf_elseIf() {
 	for i := range 4 {
 		fmt.Println(
-			trn.If[string](i == 0).
+			trn.If(i == 0).
 				Then("zero").
 				ElseIf(i == 1).
 				Then("one").
@@ -88,19 +88,19 @@ import (
 func ExampleIf_thenF_elseF() {
 	ptr := (*int)(nil)
 	fmt.Println(
-		trn.If[string](ptr != nil).
+		trn.If(ptr != nil).
 			ThenF(func() string { return fmt.Sprint(*ptr) }).
 			Else("nil int"))
 
 	s := new("string")
 	fmt.Println(
-		trn.If[string](s == nil).
+		trn.If(s == nil).
 			Then("nil string").
 			ElseF(func() string { return *s }))
 
 	err := fmt.Errorf("error %w", errors.ErrUnsupported)
 	fmt.Println(
-		trn.If[string](err == nil).
+		trn.If(err == nil).
 			Then("nil error").
 			ElseIf(errors.Is(err, errors.ErrUnsupported)).
 			ThenF(func() string { return err.Error() }).
@@ -126,7 +126,7 @@ import (
 
 func ExampleIf_elsePanic() {
 	fmt.Println(
-		trn.If[string](2*2 == 4).
+		trn.If(2*2 == 4).
 			Then("4").
 			ElsePanic("🤪"))
 	// Output:
@@ -138,4 +138,4 @@ func ExampleIf_elsePanic() {
 
 Using ternary operators can improve code readability, but reduces performance.
 
-See [bench results](bench/bench-2026-06-19.md) for particulars.
+See [bench results](bench/bench-2026-08-21.md) for particulars.

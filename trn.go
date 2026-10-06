@@ -5,67 +5,67 @@
 
 package trn
 
-// Takes condition and returns [Then] branch.
+// Takes condition and returns [ThenIntf] branch.
 //
 // # Example:
 //
 // Simple return string:
-//	s := If[string](a == 1).
+//	s := If(a == 1).
 //		Then("one").
 //		Else("not one")
 //
 // Lazy evaluate by condition:
-//	s := If[string](a != nil).
+//	s := If(a != nil).
 //		ThenF(func() string { return a.String() }).
 //		Else("nil")
 //
 // Nested conditions:
-//	s := If[string](s == nil).
+//	s := If(s == nil).
 //		Then("nil").
 //		ElseIf(len(s) == 0).
 //		Then("empty slice").
 //		ElseIf(len(s) == 1).
 //		Then("one element slice").
 //		Else(fmt.Sprintf("%d-element slice", len(s)))
-func If[T any](cond bool) Then[T] {
-	return then1[T](cond)
+func If(cond bool) Then {
+	return Then(cond)
 }
 
-// The [Then] branch provide methods [Then.Then] and [Then.ThenF]
-// to pass result if condition is true and returns [Else] branch.
-type Then[T any] interface {
+// The [ThenIntf] branch provide methods [ThenIntf.Then] and [ThenIntf.ThenF]
+// to pass result if condition is true and returns [ElseIntf] branch.
+type ThenIntf[T any] interface {
 	// Takes value for true condition and returns [Else].
-	Then(T) Else[T]
+	Then(T) ElseIntf[T]
 	// Takes closure for true condition and returns [Else].
-	ThenF(func() T) Else[T]
+	ThenF(func() T) ElseIntf[T]
 }
 
-// The [Else] provide methods:
-// 	- [Else.Else], [Else.ElseF] to pass result if condition is false, or
-//	- [Else.ElseIf], [Else.ElseIfF] to continue with nested [If], or
-// 	- [Else.Panic] to stop evaluation with panic.
-type Else[T any] interface {
+// The [ElseIntf] provide methods:
+// 	- [ElseIntf.ElseIntf], [ElseIntf.ElseF] to pass result if condition is false, or
+//	- [ElseIntf.ElseIf], [ElseIntf.ElseIfF] to continue with nested [If], or
+// 	- [ElseIntf.Panic] to stop evaluation with panic.
+type ElseIntf[T any] interface {
 	// Takes value for false condition, finish evaluation and returns result.
 	Else(T) T
 
 	// Takes closure for false condition, finish evaluation and returns result.
 	ElseF(func() T) T
 
-	// Takes the condition for a nested [If], constructs it and returns its [Then].
-	ElseIf(bool) Then[T]
+	// Takes the condition for a nested [If], constructs it and returns its [ThenIntf].
+	ElseIf(bool) ThenIntf[T]
 
-	// Takes the closure what return a condition, constructs a nested [If] and returns its [Then].
-	ElseIfF(func() bool) Then[T]
+	// Takes the closure what return a condition, constructs a nested [If] and returns its [ThenIntf].
+	ElseIfF(func() bool) ThenIntf[T]
 
 	// If condition is true then returns value passed to [Then], otherwise panics.
 	ElsePanic(any) T
 }
 
-// Implements [Then] branch
-type then1[T any] bool
+// Implements [ThenIntf] branch
+type Then bool
 
 // [Then.Then]
-func (t then1[T]) Then(v T) Else[T] {
+func (t Then) Then[T any](v T) ElseIntf[T] {
 	if t {
 		return ret1[T]{v}
 	}
@@ -73,77 +73,96 @@ func (t then1[T]) Then(v T) Else[T] {
 }
 
 // [Then.ThenF]
-func (t then1[T]) ThenF(f func() T) Else[T] {
+func (t Then) ThenF[T any](f func() T) ElseIntf[T] {
 	if t {
 		return ret1[T]{f()}
 	}
 	return else1[T]{}
 }
 
-// Implements [Else] branch
+// Implements [ElseIntf] branch
 type else1[T any] struct{}
 
-// [Else.Else]
+// [ElseIntf.Else]
 func (else1[T]) Else(v T) T {
 	return v
 }
 
-// [Else.ElseF]
+// [ElseIntf.ElseF]
 func (else1[T]) ElseF(f func() T) T {
 	return f()
 }
 
-// [Else.ElseIf]
-func (else1[T]) ElseIf(cond bool) Then[T] {
-	return then1[T](cond)
+// [ElseIntf.ElseIf]
+func (else1[T]) ElseIf(cond bool) ThenIntf[T] {
+	return elseIfThen[T](cond)
 }
 
-// [Else.ElseIfF]
-func (else1[T]) ElseIfF(f func() bool) Then[T] {
-	return then1[T](f())
+// [ElseIntf.ElseIfF]
+func (else1[T]) ElseIfF(f func() bool) ThenIntf[T] {
+	return elseIfThen[T](f())
 }
 
-// [Else.ElsePanic]
+// [ElseIntf.ElsePanic]
 func (else1[T]) ElsePanic(v any) T {
 	panic(v)
 }
 
-// Implements both branches ([Then] and [Else]) return for succussfully completed evaluation.
+// Implements [ThenIntf] branch for [ElseIntf.ElseIf] calls
+type elseIfThen[T any] bool
+
+// [Then.Then]
+func (t elseIfThen[T]) Then(v T) ElseIntf[T] {
+	if t {
+		return ret1[T]{v}
+	}
+	return else1[T]{}
+}
+
+// [Then.ThenF]
+func (t elseIfThen[T]) ThenF(f func() T) ElseIntf[T] {
+	if t {
+		return ret1[T]{f()}
+	}
+	return else1[T]{}
+}
+
+// Implements both branches ([ThenIntf] and [ElseIntf]) return for succussfully completed evaluation.
 type ret1[T any] struct {
 	v T
 }
 
-// [Else.Else]
+// [ElseIntf.Else]
 func (r ret1[T]) Else(T) T {
 	return r.v
 }
 
-// [Else.ElseF]
+// [ElseIntf.ElseF]
 func (r ret1[T]) ElseF(func() T) T {
 	return r.v
 }
 
-// [Else.ElseIf]
-func (r ret1[T]) ElseIf(bool) Then[T] {
+// [ElseIntf.ElseIf]
+func (r ret1[T]) ElseIf(bool) ThenIntf[T] {
 	return r
 }
 
-// [Else.ElseIfF]
-func (r ret1[T]) ElseIfF(func() bool) Then[T] {
+// [ElseIntf.ElseIfF]
+func (r ret1[T]) ElseIfF(func() bool) ThenIntf[T] {
 	return r
 }
 
-// [Else.ElsePanic]
+// [ElseIntf.ElsePanic]
 func (r ret1[T]) ElsePanic(any) T {
 	return r.v
 }
 
 // [Then.Then]
-func (r ret1[T]) Then(T) Else[T] {
+func (r ret1[T]) Then(T) ElseIntf[T] {
 	return r
 }
 
 // [Then.ThenF]
-func (r ret1[T]) ThenF(func() T) Else[T] {
+func (r ret1[T]) ThenF(func() T) ElseIntf[T] {
 	return r
 }
