@@ -41,7 +41,7 @@ type ThenIntf[T any] interface {
 }
 
 // The [ElseIntf] provide methods:
-// 	- [ElseIntf.ElseIntf], [ElseIntf.ElseF] to pass result if condition is false, or
+// 	- [ElseIntf.Else], [ElseIntf.ElseF] to pass result if condition is false, or
 //	- [ElseIntf.ElseIf], [ElseIntf.ElseIfF] to continue with nested [If], or
 // 	- [ElseIntf.Panic] to stop evaluation with panic.
 type ElseIntf[T any] interface {
@@ -64,7 +64,7 @@ type ElseIntf[T any] interface {
 // Implements [ThenIntf] branch
 type Then bool
 
-// [Then.Then]
+// [ThenIntf.Then]
 func (t Then) Then[T any](v T) ElseIntf[T] {
 	if t {
 		return ret1[T]{v}
@@ -72,7 +72,7 @@ func (t Then) Then[T any](v T) ElseIntf[T] {
 	return else1[T]{}
 }
 
-// [Then.ThenF]
+// [ThenIntf.ThenF]
 func (t Then) ThenF[T any](f func() T) ElseIntf[T] {
 	if t {
 		return ret1[T]{f()}
@@ -157,12 +157,12 @@ func (r ret1[T]) ElsePanic(any) T {
 	return r.v
 }
 
-// [Then.Then]
+// [ThenIntf.Then]
 func (r ret1[T]) Then(T) ElseIntf[T] {
 	return r
 }
 
-// [Then.ThenF]
+// [ThenIntf.ThenF]
 func (r ret1[T]) ThenF(func() T) ElseIntf[T] {
 	return r
 }

@@ -15,12 +15,12 @@ import (
 func ExampleIf2() {
 	i := 1
 	fmt.Println(
-		trn.If2[string, int](i == 1).
+		trn.If2(i == 1).
 			Then("one", 1).
 			Else("not one", i))
 	i++
 	fmt.Println(
-		trn.If2[string, int](i == 1).
+		trn.If2(i == 1).
 			Then("one", i).
 			Else("not one", i))
 	// Output:
@@ -31,13 +31,13 @@ func ExampleIf2() {
 func ExampleIf2_thenF_elseF() {
 	ptr := (*int)(nil)
 	fmt.Println(
-		trn.If2[string, error](ptr != nil).
+		trn.If2(ptr != nil).
 			ThenF(func() (string, error) { return fmt.Sprint(*ptr), nil }).
 			Else("nil int", errors.ErrUnsupported))
 
 	s := new("string")
 	fmt.Println(
-		trn.If2[string, error](s == nil).
+		trn.If2(s == nil).
 			Then("nil string", errors.ErrUnsupported).
 			ElseF(func() (string, error) { return *s, nil }))
 
@@ -49,7 +49,7 @@ func ExampleIf2_thenF_elseF() {
 func ExampleIf2_elseIf() {
 	for i := range 4 {
 		fmt.Println(
-			trn.If2[string, int](i == 0).
+			trn.If2(i == 0).
 				Then("zero", 0).
 				ElseIf(i == 1).
 				Then("one", 1).
@@ -68,7 +68,7 @@ func ExampleIf2_elseIfF() {
 	s := ""
 	for range 3 {
 		fmt.Println(
-			trn.If2[string, int](s == "").
+			trn.If2(s == "").
 				Then("null", 0).
 				ElseIfF(func() bool { return s[0] == 'a' }).
 				Then("a*", len(s)).
@@ -83,8 +83,8 @@ func ExampleIf2_elseIfF() {
 
 func ExampleIf2_elsePanic() {
 	fmt.Println(
-		trn.If2[string, error](2*2 == 4).
-			Then("4", nil).
+		trn.If2(2*2 == 4).
+			Then("4", error(nil)).
 			ElsePanic("🤪"))
 	// Output:
 	// 4 <nil>

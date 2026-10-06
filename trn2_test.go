@@ -16,24 +16,24 @@ import (
 func TestIf2ThenElse(t *testing.T) {
 	require := require.New(t)
 
-	i, err := trn.If2[int, error](2 > 1).Then(5, nil).Else(0, errors.ErrUnsupported)
+	i, err := trn.If2(2 > 1).Then(5, error(nil)).Else(0, errors.ErrUnsupported)
 	require.Equal(5, i)
 	require.NoError(err)
 
-	j, err := trn.If2[int, error](2 < 1).Then(5, nil).Else(0, errors.ErrUnsupported)
+	j, err := trn.If2(2 < 1).Then(5, error(nil)).Else(0, errors.ErrUnsupported)
 	require.Equal(0, j)
 	require.ErrorIs(err, errors.ErrUnsupported)
 }
 
 func TestIf2ThenRetElseRet(t *testing.T) {
 	require := require.New(t)
-	i, err := trn.If2[int, error](2 > 1).
+	i, err := trn.If2(2 > 1).
 		ThenF(func() (int, error) { return 5, nil }).
 		ElseF(func() (int, error) { return 0, errors.ErrUnsupported })
 	require.Equal(5, i)
 	require.NoError(err)
 
-	j, err := trn.If2[int, error](2 < 1).
+	j, err := trn.If2(2 < 1).
 		ThenF(func() (int, error) { return 5, nil }).
 		ElseF(func() (int, error) { return 0, errors.ErrUnsupported })
 	require.Equal(0, j)
@@ -44,8 +44,8 @@ func Test2IfThenElseIf(t *testing.T) {
 	require := require.New(t)
 	s := ""
 	for range 5 {
-		l, err := trn.If2[int, error](s == "").
-			Then(0, nil).
+		l, err := trn.If2(s == "").
+			Then(0, error(nil)).
 			ElseIf(s == "a").
 			Then(1, nil).
 			ElseIf(s == "aa").
@@ -71,14 +71,14 @@ func TestIf2ThenElsePanic(t *testing.T) {
 	require := require.New(t)
 	require.Panics(
 		func() {
-			_, _ = trn.If2[int, int](2*2 == 5).
+			_, _ = trn.If2(2*2 == 5).
 				Then(0, 0).
 				ElsePanic("🤪")
 		})
 
 	require.NotPanics(
 		func() {
-			i, j := trn.If2[int, int](2*2 == 4).
+			i, j := trn.If2(2*2 == 4).
 				Then(0, 0).
 				ElsePanic("🤪")
 			require.Zero(i)
