@@ -43,7 +43,7 @@ func ExampleIf() {
 }
 ```
 
-### Ternary with elseif
+### Ternary with nested ifs
 
 ```go
 package trn_test
@@ -55,15 +55,12 @@ import (
 )
 
 func ExampleIf_elseIf() {
-	for i := range 4 {
-		fmt.Println(
-			trn.If(i == 0).
-				Then("zero").
-				ElseIf(i == 1).
-				Then("one").
-				ElseIf(i == 2).
-				Then("two").
-				Else("many"))
+
+for i := range 4 {
+	fmt.Println(
+		trn.If(i == 0).Then("zero").Else(
+			trn.If(i == 1).Then("one").Else(
+				trn.If(i == 2).Then("two").Else("many"))))
 	}
 	// Output:
 	// zero
@@ -110,27 +107,6 @@ func ExampleIf_thenF_elseF() {
 	// nil int
 	// string
 	// error unsupported operation
-}
-```
-
-### Ternary with else panic
-
-```go
-package trn_test
-
-import (
-	"fmt"
-
-	trn "github.com/mail2nnv/ternary"
-)
-
-func ExampleIf_elsePanic() {
-	fmt.Println(
-		trn.If(2*2 == 4).
-			Then("4").
-			ElsePanic("🤪"))
-	// Output:
-	// 4
 }
 ```
 
