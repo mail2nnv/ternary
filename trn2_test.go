@@ -67,6 +67,28 @@ func Test2IfThenElseIf(t *testing.T) {
 	}
 }
 
+func TestIf2ThenElseIfThenFElseF(t *testing.T) {
+	require := require.New(t)
+
+	test := "abcd"
+
+	s, i := trn.If2(len(test) <= 3).
+		Then("short", 1).
+		ElseIfF(func() bool { return test[3] == 'a' }).
+		ThenF(func() (string, int) { return test[3:4], 2 }).
+		ElseF(func() (string, int) { return "long", 3 })
+	require.Equal("long", s)
+	require.Equal(3, i)
+
+	s1, i1 := trn.If2(len(test) <= 3).
+		Then("short", 1).
+		ElseIfF(func() bool { return test[3] == 'd' }).
+		ThenF(func() (string, int) { return test[3:4], 2 }).
+		ElseF(func() (string, int) { return "long", 3 })
+	require.Equal("d", s1)
+	require.Equal(2, i1)
+}
+
 func TestIf2ThenElsePanic(t *testing.T) {
 	require := require.New(t)
 	require.Panics(
