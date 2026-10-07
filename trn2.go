@@ -5,167 +5,74 @@
 
 package trn
 
-// Takes condition and returns [Then2Intf] branch.
+// Takes condition and returns [Condition] branch.
 //
 // # Example:
 //
 // Simple return string and error:
-//	s, err := If2(a == 1).
-//		Then("one", nil).
-//		Else("not one", errors.New("too more"))
+//	s, err := If2(a == 0).
+//		Then("", errors.New("zero")).
+//		Else("natural", nil)
 //
 // Lazy evaluate by condition:
 //	s, err := If2(a != nil).
-//		ThenF(func() (string, error) { return a.String(), nil }).
-//		Else("nil", errors.New("missed"))
+//		ThenF(func() string { return a.String(), error(nil) }).
+//		Else("", errors.New("nil"))
 //
 // Nested conditions:
-//	s, err := If2(s == nil).
-//		Then("nil", errors.New("nil")).
-//		ElseIf(len(s) == 0).
-//		Then("empty slice", errors.New("empty")).
-//		ElseIf(len(s) == 1).
-//		Then("one element slice", nil).
-//		Else(fmt.Sprintf("%d-element slice", len(s)), nil)
-func If2(cond bool) Then2 {
-	return Then2(cond)
+//	s, l :=
+// 		If(m == nil).Then("nil", 0).Else(
+//			If(len(m) == 0).Then("empty", 0).Else(
+//				If(len(m) == 1).Then("one key", 1).Else(
+// 					fmt.Sprintf("%d keys", len(m)), len(m))))
+func If2(cond bool) Condition2 {
+	return Condition2(cond)
 }
 
-// The [Then2Intf] branch provide methods [Then2Intf.Then] and [Then2Intf.ThenF]
-// to pass two results if condition is true and returns [Else2Then2Intf] branch.
-type Then2Intf[T1, T2 any] interface {
-	// Takes values for true condition and returns [Else2].
-	Then(T1, T2) Else2Intf[T1, T2]
-	// Takes closure for true condition and returns [Else].
-	ThenF(func() (T1, T2)) Else2Intf[T1, T2]
+// The [Condition2] provide methods to construct the [Branch2].
+type Condition2 bool
+
+// Passes the values for true-[Condition2].
+// Returns the [Branch2].
+func (c Condition2) Then[T1, T2 any](v1 T1, v2 T2) Branch2[T1, T2] {
+	return Branch2[T1, T2]{bool(c), v1, v2}
 }
 
-// The [Else2Intf] provide methods:
-// 	- [Else2Intf.Else], [Else2Intf.ElseF] to pass two results if condition is false, or
-//	- [Else2Intf.ElseIf], [Else2Intf.ElseIfF] to continue with nested [If2], or
-// 	- [Else2Intf.Panic] to stop evaluation with panic.
-type Else2Intf[T1, T2 any] interface {
-	// Takes values for false condition, finish evaluation and returns results.
-	Else(T1, T2) (T1, T2)
-
-	// Takes closure for false condition, finish evaluation and returns results.
-	ElseF(func() (T1, T2)) (T1, T2)
-
-	// Takes the condition for a nested [If2], constructs it and returns its [Then2Intf].
-	ElseIf(bool) Then2Intf[T1, T2]
-
-	// Takes the closure what return a condition, constructs a nested [If2] and returns its [Then2Intf].
-	ElseIfF(func() bool) Then2Intf[T1, T2]
-
-	// If condition is true then returns values passed to [Then2], otherwise panics.
-	ElsePanic(any) (T1, T2)
-}
-
-// Implements [Then2Intf] branch
-type Then2 bool
-
-// [Then2Intf.Then]
-func (t2 Then2) Then[T1, T2 any](v1 T1, v2 T2) Else2Intf[T1, T2] {
-	if t2 {
-		return ret2[T1, T2]{v1, v2}
-	}
-	return else2[T1, T2]{}
-}
-
-// [Then2Intf.ThenF]
-func (t2 Then2) ThenF[T1, T2 any](f func() (T1, T2)) Else2Intf[T1, T2] {
-	if t2 {
+// Passes the closure what returns the values for true-[Condition2].
+// Returns the [Branch2].
+func (c Condition2) ThenF[T1, T2 any](f func() (T1, T2)) Branch2[T1, T2] {
+	if c {
 		v1, v2 := f()
-		return ret2[T1, T2]{v1, v2}
+		return Branch2[T1, T2]{c: true, v1: v1, v2: v2}
 	}
-	return else2[T1, T2]{}
+	return Branch2[T1, T2]{c: false}
 }
 
-// Implements [Else2Intf] branch
-type else2[T1, T2 any] struct{}
-
-// [Else2Intf.Else]
-func (else2[T1, T2]) Else(v1 T1, v2 T2) (T1, T2) {
-	return v1, v2
-}
-
-// [Else2Intf.ElseF]
-func (else2[T1, T2]) ElseF(f func() (T1, T2)) (T1, T2) {
-	return f()
-}
-
-// [Else2Intf.ElseIf]
-func (else2[T1, T2]) ElseIf(cond bool) Then2Intf[T1, T2] {
-	return else2IfThen[T1, T2](cond)
-}
-
-// [Else2Intf.ElseIfF]
-func (else2[T1, T2]) ElseIfF(f func() bool) Then2Intf[T1, T2] {
-	return else2IfThen[T1, T2](f())
-}
-
-// [Else2Intf.ElsePanic]
-func (else2[T1, T2]) ElsePanic(v any) (T1, T2) {
-	panic(v)
-}
-
-// Implements [Then2Intf] branch for [Else2Intf.ElseIf] calls
-type else2IfThen[T1, T2 any] bool
-
-// [Then2Intf.Then]
-func (t else2IfThen[T1, T2]) Then(v1 T1, v2 T2) Else2Intf[T1, T2] {
-	if t {
-		return ret2[T1, T2]{v1, v2}
-	}
-	return else2[T1, T2]{}
-}
-
-// [Then2Intf.ThenF]
-func (t else2IfThen[T1, T2]) ThenF(f func() (T1, T2)) Else2Intf[T1, T2] {
-	if t {
-		v1, v2 := f()
-		return ret2[T1, T2]{v1, v2}
-	}
-	return else2[T1, T2]{}
-}
-
-// Implements both branches ([Then2Intf] and [Else2Intf]) to return for succussfully completed evaluation.
-type ret2[T1, T2 any] struct {
+// The [Branch2] provide methods to evaluate the [Condition2].
+type Branch2[T1, T2 any] struct {
+	c  bool
 	v1 T1
 	v2 T2
 }
 
-// [Else2Intf.Else]
-func (d ret2[T1, T2]) Else(T1, T2) (T1, T2) {
-	return d.v1, d.v2
+// Pass the values for false-[Condition2], evaluates the [Condition2] and returns the results.
+//
+// If [Condition2] is true, then returns the values early passed to [Condition2.Then] (or to [Condition2.ThenF]),
+// elsewhere return passed values.
+func (t Branch2[T1, T2]) Else(v1 T1, v2 T2) (T1, T2) {
+	if t.c {
+		return t.v1, t.v2
+	}
+	return v1, v2
 }
 
-// [Else2Intf.ElseF]
-func (d ret2[T1, T2]) ElseF(func() (T1, T2)) (T1, T2) {
-	return d.v1, d.v2
-}
-
-// [Else2Intf.ElseIf]
-func (d ret2[T1, T2]) ElseIf(bool) Then2Intf[T1, T2] {
-	return d
-}
-
-// [Else2Intf.ElseIfF]
-func (d ret2[T1, T2]) ElseIfF(func() bool) Then2Intf[T1, T2] {
-	return d
-}
-
-// [Else2Intf.ElsePanic]
-func (d ret2[T1, T2]) ElsePanic(any) (T1, T2) {
-	return d.v1, d.v2
-}
-
-// [Then2Intf.Then]
-func (d ret2[T1, T2]) Then(T1, T2) Else2Intf[T1, T2] {
-	return d
-}
-
-// [Then2Intf.ThenF]
-func (d ret2[T1, T2]) ThenF(func() (T1, T2)) Else2Intf[T1, T2] {
-	return d
+// Pass the closure for false-[Condition2], evaluates the [Condition] and returns the results.
+//
+// If [Condition2] is true, then returns the value2 early passed to [Condition2.Then] (or to [Condition2.ThenF]),
+// elsewhere returns the passed closure results.
+func (t Branch2[T1, T2]) ElseF(f func() (T1, T2)) (T1, T2) {
+	if t.c {
+		return t.v1, t.v2
+	}
+	return f()
 }

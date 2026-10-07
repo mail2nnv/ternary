@@ -6,7 +6,6 @@
 package trn_test
 
 import (
-	"errors"
 	"fmt"
 
 	trn "github.com/mail2nnv/ternary"
@@ -40,60 +39,7 @@ func ExampleIf_thenF_elseF() {
 		trn.If(s == nil).
 			Then("nil string").
 			ElseF(func() string { return *s }))
-
-	err := fmt.Errorf("error %w", errors.ErrUnsupported)
-	fmt.Println(
-		trn.If(err == nil).
-			Then("nil error").
-			ElseIf(errors.Is(err, errors.ErrUnsupported)).
-			ThenF(func() string { return err.Error() }).
-			ElseF(func() string { return fmt.Sprintf("surprise: %s", err.Error()) }))
-
 	// Output:
 	// nil int
 	// string
-	// error unsupported operation
-}
-
-func ExampleIf_elseIf() {
-	for i := range 4 {
-		fmt.Println(
-			trn.If(i == 0).
-				Then("zero").
-				ElseIf(i == 1).
-				Then("one").
-				ElseIf(i == 2).
-				Then("two").
-				Else("many"))
-	}
-	// Output:
-	// zero
-	// one
-	// two
-	// many
-}
-
-func ExampleIf_elseIfF() {
-	s := ""
-	for range 2 {
-		fmt.Println(
-			trn.If(s == "").
-				Then("null").
-				ElseIfF(func() bool { return s[0] == 'a' }).
-				Then("a*").
-				Else("other"))
-		s += "a"
-	}
-	// Output:
-	// null
-	// a*
-}
-
-func ExampleIf_elsePanic() {
-	fmt.Println(
-		trn.If(2*2 == 4).
-			Then("4").
-			ElsePanic("🤪"))
-	// Output:
-	// 4
 }

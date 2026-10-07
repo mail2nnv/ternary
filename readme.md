@@ -7,7 +7,7 @@ The package `trn` provides ternary operators for Go.
 
 Install with the go get command:
 
-```
+```shell
 go get github.com/mail2nnv/ternary
 ```
 
@@ -136,6 +136,6 @@ func ExampleIf_elsePanic() {
 
 ## Ternary and performance
 
-Using ternary operators can improve code readability, but reduces performance.
+Using ternary operators can improve code readability, but slightly reduces performance, especially if you have to use lazy returns from closures (`If().ThenF(…)` or `If().Then().ElseF(…)`).
 
 See [bench results](bench/bench-2026-10-07.md) for particulars.
