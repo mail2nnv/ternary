@@ -138,4 +138,4 @@ func ExampleIf_elsePanic() {
 
 Using ternary operators can improve code readability, but reduces performance.
 
-See [bench results](bench/bench-2026-08-21.md) for particulars.
+See [bench results](bench/bench-2026-10-07.md) for particulars.
