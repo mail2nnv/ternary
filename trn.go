@@ -21,10 +21,10 @@ package trn
 //
 // Nested conditions:
 //	s :=
-// 		If(s == nil).Then("nil").Else(
-//			If(len(s) == 0).Then("empty slice").Else(
-//				If(len(s) == 1).Then("one element slice").Else(
-// 					fmt.Sprintf("%d-element slice", len(s)))))
+// 		If(m == nil).Then("nil").Else(
+//			If(len(m) == 0).Then("empty").Else(
+//				If(len(m) == 1).Then("one item").Else(
+// 					fmt.Sprintf("%m items", len(m)))))
 func If(cond bool) Condition {
 	return Condition(cond)
 }
@@ -32,13 +32,13 @@ func If(cond bool) Condition {
 // The [Condition] provide methods to construct the [Branch].
 type Condition bool
 
-// Passes the value for true-[Condition].
+// Passes the value for [Condition] if it is true.
 // Returns the [Branch].
 func (c Condition) Then[T any](v T) Branch[T] {
 	return Branch[T]{bool(c), v}
 }
 
-// Passes the closure what returns the value for true-[Condition].
+// Passes the closure returns value for [Condition] if it is true.
 // Returns the [Branch].
 func (c Condition) ThenF[T any](f func() T) Branch[T] {
 	if c {
@@ -53,7 +53,8 @@ type Branch[T any] struct {
 	v T
 }
 
-// Pass the value for false-[Condition], evaluates the [Condition] and returns the result.
+// Passes the value for [Condition] if it is false, evaluates the [Condition]
+// and returns the result.
 //
 // If [Condition] is true, then returns the value early passed to [Condition.Then] (or to [Condition.ThenF]),
 // elsewhere return passed value.
@@ -64,7 +65,8 @@ func (t Branch[T]) Else(v T) T {
 	return v
 }
 
-// Pass the closure for false-[Condition], evaluates the [Condition] and returns the result.
+// Passes the closure returns value for [Condition] if it is false, evaluates the [Condition]
+// and returns the result.
 //
 // If [Condition] is true, then returns the value early passed to [Condition.Then] (or to [Condition.ThenF]),
 // elsewhere returns the passed closure result.
