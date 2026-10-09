@@ -13,7 +13,7 @@ go get github.com/mail2nnv/ternary
 
 ## Examplies
 
-### Simplest ternary
+### Simplest `If` ternary
 
 ```go
 package trn_test
@@ -43,7 +43,7 @@ func ExampleIf() {
 }
 ```
 
-### Ternary with nested ifs
+### Ternary `If` with nested
 
 ```go
 package trn_test
@@ -70,7 +70,7 @@ for i := range 4 {
 }
 ```
 
-### Ternary with lazy evaluation
+### Ternary `If` with lazy evaluation
 
 ```go
 package trn_test
@@ -114,4 +114,4 @@ func ExampleIf_thenF_elseF() {
 
 Using ternary operators can improve code readability, but slightly reduces performance, especially if you have to use lazy returns from closures (`If().ThenF(…)` or `If().Then().ElseF(…)`).
 
-See [bench results](bench/bench-2026-10-07.md) for particulars.
+See [bench results](bench/lastest.md) for particulars.
