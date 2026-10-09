@@ -39,7 +39,7 @@ func Benchmark_If(b *testing.B) {
 		b.ResetTimer()
 		for b.Loop() {
 
-			got := iF.True(2*2 == _4()).Then("OK").Else("Fail")
+			got := iF.T(2*2 == _4()).Then("OK").Else("Fail")
 
 			if got != "OK" {
 				b.Fail()
