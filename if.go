@@ -5,7 +5,7 @@
 
 package trn
 
-// Takes condition and returns [Condition] branch.
+// Takes condition and returns [IfBranch] branch.
 //
 // # Example:
 //
@@ -25,53 +25,53 @@ package trn
 //			If(len(m) == 0).Then("empty").Else(
 //				If(len(m) == 1).Then("one item").Else(
 // 					fmt.Sprintf("%m items", len(m)))))
-func If(cond bool) Condition {
-	return Condition(cond)
+func If(cond bool) IfBranch {
+	return IfBranch(cond)
 }
 
-// The [Condition] provide methods to construct the [Branch].
-type Condition bool
+// The [IfBranch] provide methods to construct the [Then].
+type IfBranch bool
 
-// Passes the value for [Condition] if it is true.
-// Returns the [Branch].
-func (c Condition) Then[T any](v T) Branch[T] {
-	return Branch[T]{bool(c), v}
+// Passes the value for [IfBranch] if it is true.
+// Returns the [Then].
+func (i IfBranch) Then[V any](v V) Then[V] {
+	return Then[V]{bool(i), v}
 }
 
-// Passes the closure returns value for [Condition] if it is true.
-// Returns the [Branch].
-func (c Condition) ThenF[T any](f func() T) Branch[T] {
-	if c {
-		return Branch[T]{c: true, v: f()}
+// Passes the closure returns value for [IfBranch] if it is true.
+// Returns the [Then].
+func (i IfBranch) ThenF[T any](f func() T) Then[T] {
+	if i {
+		return Then[T]{bool: true, v: f()}
 	}
-	return Branch[T]{c: false}
+	return Then[T]{bool: false}
 }
 
-// The [Branch] provide methods to evaluate the [Condition].
-type Branch[T any] struct {
-	c bool
-	v T
+// The [Then] provide methods to evaluate the [IfBranch].
+type Then[V any] struct {
+	bool
+	v V
 }
 
-// Passes the value for [Condition] if it is false, evaluates the [Condition]
+// Passes the value for [IfBranch] if it is false, evaluates the [IfBranch]
 // and returns the result.
 //
-// If [Condition] is true, then returns the value early passed to [Condition.Then] (or to [Condition.ThenF]),
+// If [IfBranch] is true, then returns the value early passed to [IfBranch.Then] (or to [IfBranch.ThenF]),
 // elsewhere return passed value.
-func (t Branch[T]) Else(v T) T {
-	if t.c {
+func (t Then[V]) Else(v V) V {
+	if t.bool {
 		return t.v
 	}
 	return v
 }
 
-// Passes the closure returns value for [Condition] if it is false, evaluates the [Condition]
+// Passes the closure returns value for [IfBranch] if it is false, evaluates the [IfBranch]
 // and returns the result.
 //
-// If [Condition] is true, then returns the value early passed to [Condition.Then] (or to [Condition.ThenF]),
+// If [IfBranch] is true, then returns the value early passed to [IfBranch.Then] (or to [IfBranch.ThenF]),
 // elsewhere returns the passed closure result.
-func (t Branch[T]) ElseF(f func() T) T {
-	if t.c {
+func (t Then[V]) ElseF(f func() V) V {
+	if t.bool {
 		return t.v
 	}
 	return f()
