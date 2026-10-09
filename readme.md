@@ -11,9 +11,9 @@ Install with the go get command:
 go get github.com/mail2nnv/ternary
 ```
 
-## Examplies
+## `If`
 
-### Simplest ternary
+### Simplest `If` ternary
 
 ```go
 package trn_test
@@ -43,7 +43,7 @@ func ExampleIf() {
 }
 ```
 
-### Ternary with nested ifs
+### Ternary `If` with nested
 
 ```go
 package trn_test
@@ -70,7 +70,7 @@ for i := range 4 {
 }
 ```
 
-### Ternary with lazy evaluation
+### Ternary `If` with lazy evaluation
 
 ```go
 package trn_test
@@ -110,8 +110,64 @@ func ExampleIf_thenF_elseF() {
 }
 ```
 
+## `Switch`
+
+### Simplest `Switch` ternary
+
+```go
+package trn_test
+
+import (
+	"fmt"
+
+	trn "github.com/mail2nnv/ternary"
+)
+
+func ExampleSwitch() {
+	for i := range 3 {
+		fmt.Println(
+			trn.Switch(i).
+				Case(1, "one").
+				Case(2, "two").
+				Default("zero"))
+	}
+	// Output:
+	// zero
+	// one
+	// two
+}
+```
+
+### Ternary `Switch` with lazy evaluation
+
+```go
+package trn_test
+
+import (
+	"fmt"
+
+	trn "github.com/mail2nnv/ternary"
+)
+
+func ExampleSwitch_lazy() {
+	for i := range 4 {
+		fmt.Println(
+			trn.Switch(i).
+				CaseK(func() int { return 1 }, "one").
+				CaseV(2, func() string { return "two" }).
+				CaseKV(func() int { return 3 }, func() string { return "three" }).
+				DefaultV(func() string { return "zero" }))
+	}
+	// Output:
+	// zero
+	// one
+	// two
+	// three
+}
+```
+
 ## Ternary and performance
 
 Using ternary operators can improve code readability, but slightly reduces performance, especially if you have to use lazy returns from closures (`If().ThenF(…)` or `If().Then().ElseF(…)`).
 
-See [bench results](bench/bench-2026-10-07.md) for particulars.
+See [bench results](bench/lastest.md) for particulars.
