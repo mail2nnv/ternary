@@ -31,11 +31,11 @@ func TestSwitch(t *testing.T) {
 	for i := range 5 {
 		require.Equal(strconv.Itoa(i),
 			trn.Switch(i).
-				Case(0).Return("0").
 				Case(1).Return("1").
 				Case(2).Return("2").
 				Case(3).Return("3").
-				Default("4"))
+				Case(4).Return("4").
+				Default("0"))
 	}
 }
 

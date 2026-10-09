@@ -5,7 +5,7 @@
 
 package trn
 
-// Switch(a). 							// -> SwitchChain[int]
+// Switch(a). 							// -> Sw[int]
 // 	Case(1).								// -> FirstCase[int]
 // 		Return[string]("1").	// -> Return[int, string]
 // 	Case(2).								// -> NextCase[int, string]
@@ -14,15 +14,15 @@ package trn
 // 		Return("3").					// -> Return[int, string]
 //	Default("more")
 
-func Switch[T comparable](v T) SwitchChain[T] {
-	return SwitchChain[T]{want: v}
+func Switch[T comparable](v T) Sw[T] {
+	return Sw[T]{want: v}
 }
 
-type SwitchChain[T comparable] struct {
+type Sw[T comparable] struct {
 	want T
 }
 
-func (s SwitchChain[T]) Case(v T) FirstCase[T] {
+func (s Sw[T]) Case(v T) FirstCase[T] {
 	if s.want == v {
 		return FirstCase[T]{state: resolved}
 	}
