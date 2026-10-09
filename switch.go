@@ -5,106 +5,162 @@
 
 package trn
 
-// Switch(a). 							// -> Sw[int]
-// 	Case(1).								// -> FirstCase[int]
-// 		Return[string]("1").	// -> Return[int, string]
-// 	Case(2).								// -> NextCase[int, string]
-// 		Return("2").					// -> Return[int, string]
-// 	Case(3).								// -> NextCase[int, string]
-// 		Return("3").					// -> Return[int, string]
-//	Default("more")
-
-func Switch[T comparable](v T) Sw[T] {
-	return Sw[T]{want: v}
+// Takes switch value and returns [SwitchBranch].
+//
+// # Example:
+//
+// Simple return string:
+//
+//	var a int
+//	…
+//	s := Switch(a).
+//		Case(1, "one").
+//		Case(2, "two").
+//		Default("more")
+//
+// Lazy evaluate value or result:
+//
+//	var a int
+//	…
+//	s := Switch(a).
+//		CaseF(func() int { return 1 }, 	"one").
+//		CaseR(2, func() string { return "two"} ).
+//		CaseFR(func() int { return 3 }, func() string { return "three"} ).
+//		DefaultR(func() string { return "more"} )
+func Switch[K comparable](want K) SwitchBranch[K] {
+	return SwitchBranch[K]{want}
 }
 
-type Sw[T comparable] struct {
-	want T
+// The [SwitchBranch] provide methods to construct the [Case].
+type SwitchBranch[K comparable] struct {
+	want K
 }
 
-func (s Sw[T]) Case(v T) FirstCase[T] {
-	if s.want == v {
-		return FirstCase[T]{state: resolved}
+// Passes the value `got` and the result `v`, which will be used
+// if `got` matches the passed to [Switch] `want`.
+//
+// Returns the next [Case].
+func (s SwitchBranch[K]) Case[V any](got K, v V) Case[K, V] {
+	if s.want == got {
+		return Case[K, V]{resolved: true, result: v}
 	}
-	return FirstCase[T]{want: s.want}
+	return Case[K, V]{want: s.want}
 }
 
-type FirstCase[T comparable] struct {
-	state int
-	want  T
+// Passes the closure `got` and the result `v`, which will be used
+// if `got` return matches the passed to [Switch] `want`.
+//
+// Returns the next [Case].
+func (s SwitchBranch[K]) CaseK[V any](got func() K, v V) Case[K, V] {
+	if s.want == got() {
+		return Case[K, V]{resolved: true, result: v}
+	}
+	return Case[K, V]{want: s.want}
 }
 
-func (c FirstCase[T]) Return[V any](v V) Return[T, V] {
-	if c.state == resolved {
-		return Return[T, V]{
-			state:  resolved,
-			result: v,
-		}
+// Passes the value `got` and the closure `v`, which result will be used
+// if `got` matches the passed to [Switch] `want`.
+//
+// Returns the next [Case].
+func (s SwitchBranch[K]) CaseV[R func() V, V any](got K, v R) Case[K, V] {
+	if s.want == got {
+		return Case[K, V]{resolved: true, result: v()}
 	}
-	return Return[T, V]{
-		want: c.want,
-	}
+	return Case[K, V]{want: s.want}
 }
 
-type Return[T comparable, V any] struct {
-	state  int
-	result V
-	want   T
+// Passes the closure `got` and the closure `v`, which result will be used
+// if `got` return matches the passed to [Switch] `want`.
+//
+// Returns the next [Case].
+func (s SwitchBranch[K]) CaseKV[R func() V, V any](got func() K, v R) Case[K, V] {
+	if s.want == got() {
+		return Case[K, V]{resolved: true, result: v()}
+	}
+	return Case[K, V]{want: s.want}
 }
 
-func (r Return[T, V]) Case(v T) NextCase[T, V] {
-	if r.state == resolved {
-		return NextCase[T, V]{
-			state:  resolved,
-			result: r.result,
-		}
-	}
-
-	if r.want == v {
-		return NextCase[T, V]{
-			state: temp,
-		}
-	}
-
-	return NextCase[T, V]{
-		want: r.want,
-	}
+// The [Case] provide methods to construct the next [Case] and method [Default]
+// to finish [SwitchBranch] evaluation.
+type Case[K comparable, V any] struct {
+	resolved bool
+	result   V
+	want     K
 }
 
-func (r Return[T, V]) Default(v V) V {
-	if r.state == resolved {
-		return r.result
+// Passes the value `got` and the result `v`, which will be used
+// if `got` matches the passed to [Switch] `want`.
+//
+// Returns the next [Case].
+func (c Case[K, V]) Case(got K, v V) Case[K, V] {
+	if c.resolved {
+		return c
+	}
+	if c.want == got {
+		return Case[K, V]{resolved: true, result: v}
+	}
+	return c
+}
+
+// Passes the closure `got` and the result `v`, which will be used
+// if `got` return matches the passed to [Switch] `want`.
+//
+// Returns the next [Case].
+func (c Case[K, V]) CaseK(got func() K, v V) Case[K, V] {
+	if c.resolved {
+		return c
+	}
+	if c.want == got() {
+		return Case[K, V]{resolved: true, result: v}
+	}
+	return c
+}
+
+// Passes the value `got` and the closure `v`, which result will be used
+// if `got` matches the passed to [Switch] `want`.
+//
+// Returns the next [Case].
+func (c Case[K, V]) CaseV(got K, v func() V) Case[K, V] {
+	if c.resolved {
+		return c
+	}
+	if c.want == got {
+		return Case[K, V]{resolved: true, result: v()}
+	}
+	return c
+}
+
+// Passes the closure `got` and the closure `v`, which result will be used
+// if `got` return matches the passed to [Switch] `want`.
+//
+// Returns the next [Case].
+func (c Case[K, V]) CaseKV(got func() K, v func() V) Case[K, V] {
+	if c.resolved {
+		return c
+	}
+	if c.want == got() {
+		return Case[K, V]{resolved: true, result: v()}
+	}
+	return c
+}
+
+// Returns the value `v` previously passed to the [Case]
+// ​​whose `got` value matched the `want` value from [Switch],
+// or the value `v` passed here if no such [Case] ​​exists.
+func (c Case[K, V]) Default(v V) V {
+	if c.resolved {
+		return c.result
 	}
 	return v
 }
 
-type NextCase[T comparable, V any] struct {
-	state  int
-	result V
-	want   T
-}
-
-func (c NextCase[T, V]) Return(v V) Return[T, V] {
-	switch c.state {
-	case resolved:
-		return Return[T, V]{
-			state:  resolved,
-			result: c.result,
-		}
-	case temp:
-		return Return[T, V]{
-			state:  resolved,
-			result: v,
-		}
-	default:
-		return Return[T, V]{
-			want: c.want,
-		}
+// Returns the value `v` previously passed to the [Case]
+// ​​whose `got` value matched the `want` value from [Switch],
+// or the value returned by the closure `v` passed here
+// if no such [Case] ​​exists.
+func (c Case[K, V]) DefaultV(v func() V) V {
+	if c.resolved {
+		return c.result
 	}
+	return v()
 }
-
-const (
-	unresolved int = iota
-	resolved
-	temp
-)

@@ -20,65 +20,40 @@ import (
 )
 
 func TestSwitch(t *testing.T) {
-	require := require.New(t)
-	require.Equal("3",
-		trn.Switch(3).
-			Case(1).Return("1").
-			Case(2).Return("2").
-			Case(3).Return("3").
-			Default("more"))
+	req := require.New(t)
 
 	for i := range 5 {
-		require.Equal(strconv.Itoa(i),
+		want := strconv.Itoa(i)
+		req.Equal(want,
 			trn.Switch(i).
-				Case(1).Return("1").
-				Case(2).Return("2").
-				Case(3).Return("3").
-				Case(4).Return("4").
+				Case(1, "1").
+				Case(2, "2").
+				Case(3, "3").
+				Case(4, "4").
 				Default("0"))
+
+		req.Equal(want,
+			trn.Switch(i).
+				CaseK(func() int { return (1) }, "1").
+				CaseK(func() int { return (2) }, "2").
+				CaseK(func() int { return (3) }, "3").
+				CaseK(func() int { return (4) }, "4").
+				Default("0"))
+
+		req.Equal(want,
+			trn.Switch(i).
+				CaseV(1, func() string { return "1" }).
+				CaseV(2, func() string { return "2" }).
+				CaseV(3, func() string { return "3" }).
+				CaseV(4, func() string { return "4" }).
+				DefaultV(func() string { return "0" }))
+
+		req.Equal(want,
+			trn.Switch(i).
+				CaseKV(func() int { return 1 }, func() string { return "1" }).
+				CaseKV(func() int { return 2 }, func() string { return "2" }).
+				CaseKV(func() int { return 3 }, func() string { return "3" }).
+				CaseKV(func() int { return 4 }, func() string { return "4" }).
+				DefaultV(func() string { return "0" }))
 	}
-}
-
-func Benchmark_Switch(b *testing.B) {
-
-	b.Run("Native switch", func(b *testing.B) {
-		b.ResetTimer()
-		for b.Loop() {
-			for i := range 5 {
-				var got int
-				switch i {
-				case 0:
-					got = 9
-				case 1:
-					got = 8
-				case 2:
-					got = 7
-				case 3:
-					got = 6
-				default:
-					got = 5
-				}
-				if got != 9-i {
-					b.Fail()
-				}
-			}
-		}
-	})
-
-	b.Run("Ternary switch", func(b *testing.B) {
-		b.ResetTimer()
-		for b.Loop() {
-			for i := range 5 {
-				got := trn.Switch(i).
-					Case(0).Return(9).
-					Case(1).Return(8).
-					Case(2).Return(7).
-					Case(3).Return(6).
-					Default(5)
-				if got != 9-i {
-					b.Fail()
-				}
-			}
-		}
-	})
 }
