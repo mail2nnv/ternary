@@ -3,18 +3,18 @@
  * @author: Nikolay Nikitin
  */
 
-package trn_test
+package sw_test
 
 import (
 	"fmt"
 
-	trn "github.com/mail2nnv/ternary"
+	sw "github.com/mail2nnv/ternary/switch"
 )
 
 func ExampleSwitch() {
 	for i := range 3 {
 		fmt.Println(
-			trn.Switch(i).
+			sw.V(i).
 				Case(1, "one").
 				Case(2, "two").
 				Default("zero"))
@@ -28,7 +28,7 @@ func ExampleSwitch() {
 func ExampleSwitch_lazy() {
 	for i := range 4 {
 		fmt.Println(
-			trn.Switch(i).
+			sw.V(i).
 				CaseK(func() int { return 1 }, "one").
 				CaseV(2, func() string { return "two" }).
 				CaseKV(func() int { return 3 }, func() string { return "three" }).
