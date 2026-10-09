@@ -11,7 +11,7 @@ import (
 	sw "github.com/mail2nnv/ternary/switch"
 )
 
-func ExampleSwitch() {
+func ExampleV() {
 	for i := range 3 {
 		fmt.Println(
 			sw.V(i).
@@ -25,7 +25,7 @@ func ExampleSwitch() {
 	// two
 }
 
-func ExampleSwitch_lazy() {
+func ExampleV_lazy() {
 	for i := range 4 {
 		fmt.Println(
 			sw.V(i).
